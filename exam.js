@@ -20,12 +20,37 @@ const flagged = new Set();
 const quality = new Set();
 let entry = null;
 let runOrder = null;
-// Time tracker (Nov 23, 2026): banked seconds from earlier segments of a
-// resumed run plus the current segment's start. Every progress save carries
-// the accumulated 'secs' so far; a finished attempt records the total.
+// Time tracker: ACTIVE time only (changed Nov 24, 2026). 'secs' banks
+// active seconds: the clock runs only while the page is in front AND the
+// user has interacted within the last 2 minutes. Switching away pauses it
+// at once; 2 idle minutes pause it until the next tap or key. Every
+// progress save carries the accumulated 'secs' so far; a finished attempt
+// records the total.
 let bankedSecs = 0;
-let segStart = Date.now();
-function elapsedSecs() { return Math.round(bankedSecs + (Date.now() - segStart) / 1000); }
+let activeSecs = 0;
+let lastTick = Date.now();
+let lastInteract = Date.now();
+let inFront = true;
+function activeTick() {
+  const now = Date.now();
+  if (inFront && !document.hidden && now - lastInteract < 120000) {
+    activeSecs += (now - lastTick) / 1000;
+  }
+  lastTick = now;
+}
+function resetSegment() {
+  activeSecs = 0;
+  lastTick = Date.now();
+  lastInteract = Date.now();
+}
+setInterval(activeTick, 1000);
+['pointerdown', 'keydown', 'touchstart', 'wheel'].forEach(function (ev) {
+  document.addEventListener(ev, function () { lastInteract = Date.now(); }, { passive: true });
+});
+document.addEventListener('visibilitychange', function () { if (!document.hidden) lastInteract = Date.now(); activeTick(); });
+window.addEventListener('blur', function () { activeTick(); inFront = false; });
+window.addEventListener('focus', function () { inFront = true; lastInteract = Date.now(); lastTick = Date.now(); });
+function elapsedSecs() { activeTick(); return Math.round(bankedSecs + activeSecs); }
 
 function buildMetaQuestions(pool) {
   const N = pool.length;
@@ -346,7 +371,7 @@ Promise.all([
       (p.quality || []).forEach(i => quality.add(i));
     }
   } catch (e) { /* no saved progress */ }
-  segStart = Date.now();
+  resetSegment();
   show();
   renderAnswered();
 });
