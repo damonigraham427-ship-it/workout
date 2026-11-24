@@ -82,6 +82,14 @@
   },
   {
    "category": "Workout Elements",
+   "chapter": "Lower Body",
+   "file": "lowerbody-hip-muscles.json",
+   "title": "Lower Body — Hip Muscles",
+   "notes": true,
+   "region": "lower"
+  },
+  {
+   "category": "Workout Elements",
    "chapter": "Abdomen",
    "file": "upperbody-abdominals.json",
    "title": "Abdomen — Abdominals",
