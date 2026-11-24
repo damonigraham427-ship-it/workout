@@ -18,7 +18,7 @@
   // ---- sync bar UI ----
   var bar = document.createElement('div');
   bar.className = 'sync-bar';
-  bar.innerHTML = '<span id="sync-status">Sync: loading…</span><button type="button" id="sync-btn" hidden></button>';
+  bar.innerHTML = '<span id="sync-status">Sync: loading…</span><button type="button" id="sync-btn" hidden></button>' + (/^\/exams\//.test(location.pathname) ? '' : '<a href="https://damonigraham427-ship-it.github.io/exams/" style="margin-left:10px;font-weight:700">\u2302 Main portal</a>');
   document.body.insertBefore(bar, document.body.firstChild);
   var statusEl = document.getElementById('sync-status');
   var btn = document.getElementById('sync-btn');
