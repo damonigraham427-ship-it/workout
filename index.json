@@ -1,0 +1,180 @@
+{
+ "exams": [
+  {
+   "category": "Workout Elements",
+   "file": "workout-reference-weight.json",
+   "title": "Workout Elements — Reference Weight",
+   "chapter": "Reference Weight",
+   "ladder": true,
+   "region": "upper"
+  },
+  {
+   "category": "Workout Elements",
+   "chapter": "Static List",
+   "file": "workout-static-list.json",
+   "title": "Workout Elements — Static List",
+   "notes": true,
+   "region": "general"
+  },
+  {
+   "category": "Workout Elements",
+   "chapter": "Pump Circumference",
+   "file": "workout-pump-circumference.json",
+   "title": "Workout Elements — Pump Circumference",
+   "notes": true,
+   "region": "general"
+  },
+  {
+   "category": "Workout Elements",
+   "chapter": "Upper Body",
+   "file": "upperbody-chest.json",
+   "title": "Upper Body — Chest",
+   "notes": true,
+   "region": "upper"
+  },
+  {
+   "category": "Workout Elements",
+   "chapter": "Upper Body",
+   "file": "upperbody-shoulders.json",
+   "title": "Upper Body — Shoulders",
+   "ladder": true,
+   "region": "upper"
+  },
+  {
+   "category": "Workout Elements",
+   "chapter": "Upper Body",
+   "file": "upperbody-upper-back.json",
+   "title": "Upper Body — Upper back",
+   "notes": true,
+   "region": "upper"
+  },
+  {
+   "category": "Workout Elements",
+   "chapter": "Upper Body",
+   "file": "upperbody-rotator-cuffs.json",
+   "title": "Upper Body — Rotator cuffs",
+   "notes": true,
+   "region": "upper"
+  },
+  {
+   "category": "Workout Elements",
+   "chapter": "Upper Body",
+   "file": "upperbody-lats.json",
+   "title": "Upper Body — Lats",
+   "notes": true,
+   "region": "upper"
+  },
+  {
+   "category": "Workout Elements",
+   "chapter": "Lower Body",
+   "file": "upperbody-lower-back.json",
+   "title": "Lower Body — Lower back",
+   "notes": true,
+   "region": "lower"
+  },
+  {
+   "category": "Workout Elements",
+   "chapter": "Lower Body",
+   "file": "lowerbody-hamstrings.json",
+   "title": "Lower Body — Hamstrings",
+   "ladder": true,
+   "region": "lower"
+  },
+  {
+   "category": "Workout Elements",
+   "chapter": "Abdomen",
+   "file": "upperbody-abdominals.json",
+   "title": "Abdomen — Abdominals",
+   "notes": true,
+   "region": "abdomen"
+  },
+  {
+   "category": "Workout Elements",
+   "chapter": "Abdomen",
+   "file": "upperbody-obliques.json",
+   "title": "Abdomen — Obliques",
+   "notes": true,
+   "region": "abdomen"
+  },
+  {
+   "category": "Workout Elements",
+   "chapter": "Upper Body",
+   "file": "upperbody-biceps.json",
+   "title": "Upper Body — Biceps",
+   "ladder": true,
+   "region": "upper"
+  },
+  {
+   "category": "Workout Elements",
+   "chapter": "Upper Body",
+   "file": "upperbody-triceps.json",
+   "title": "Upper Body — Triceps",
+   "notes": true,
+   "region": "upper"
+  },
+  {
+   "category": "Workout Elements",
+   "chapter": "Upper Body",
+   "file": "upperbody-forearms.json",
+   "title": "Upper Body — Forearms",
+   "notes": true,
+   "region": "upper"
+  },
+  {
+   "category": "Workout Elements",
+   "chapter": "Running",
+   "file": "running-1-mile.json",
+   "title": "Running — 1 Mile",
+   "notes": true,
+   "region": "running"
+  },
+  {
+   "category": "Workout Elements",
+   "chapter": "Running",
+   "file": "running-2-mile.json",
+   "title": "Running — 2 Mile",
+   "notes": true,
+   "region": "running"
+  },
+  {
+   "category": "Workout Elements",
+   "chapter": "Running",
+   "file": "running-3-mile.json",
+   "title": "Running — 3 Mile",
+   "notes": true,
+   "region": "running"
+  },
+  {
+   "category": "Workout Elements",
+   "chapter": "Running",
+   "file": "stair-master.json",
+   "title": "Running — Stair Master",
+   "notes": true,
+   "region": "running"
+  },
+  {
+   "category": "Workout Elements",
+   "chapter": "Running",
+   "file": "weighted-stair-master.json",
+   "title": "Running — Weighted Stair Master",
+   "notes": true,
+   "region": "running"
+  },
+  {
+   "category": "Workout Elements",
+   "chapter": "Weight Vest Run",
+   "file": "weight-vest-run.json",
+   "title": "Weight Vest Run — Run",
+   "notes": true,
+   "region": "vest"
+  },
+  {
+   "category": "Workout Elements",
+   "chapter": "Incline Treadmill",
+   "file": "incline-treadmill.json",
+   "title": "Incline Treadmill — Run",
+   "notes": true,
+   "region": "incline"
+  }
+ ]
+}

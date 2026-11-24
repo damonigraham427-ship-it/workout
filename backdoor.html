@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Back door — exam state</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .bd-wrap { max-width: 860px; margin: 0 auto; padding: 16px; }
+  .bd-wrap h1 { font-size: 20px; margin: 8px 0 2px; }
+  .bd-sub { color: #475569; font-size: 13px; margin: 0 0 14px; }
+  .bd-sec { font-size: 15px; margin: 18px 0 6px; }
+  .bd-line { font-size: 13px; line-height: 1.55; border-bottom: 1px solid #e2e8f0; padding: 3px 0; }
+  .bd-line b { font-weight: 600; }
+  .bd-m { color: #15803d; } .bd-l { color: #b45309; } .bd-r { color: #2563eb; }
+  .bd-dim { color: #64748b; }
+  .bd-log { font-size: 12px; color: #334155; line-height: 1.6; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<div class="bd-wrap">
+  <h1>Back door</h1>
+  <p class="bd-sub">Not linked anywhere. Shows the exact numbers the Topics circle uses, and keeps a dated log of how they change. Edison reads the same numbers from your synced cloud copy.</p>
+  <div id="bd-out">Loading…</div>
+  <p class="bd-sec">Change log (newest first)</p>
+  <div class="bd-log" id="bd-log"></div>
+</div>
+<script src="sync.js"></script>
+<script src="hour-tiers.js"></script>
+<script src="backdoor.js"></script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quality review</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+<p><a href="exams.html">&larr; Exams</a></p>
+<h1>Quality review — my marked questions</h1>
+<p class="check-note">Questions you marked with the Quality review button while answering, from your latest attempt on each exam on this device — finished or still in progress. Comments save on this device.</p>
+<p id="qr-counts" class="check-totals"></p>
+<p><button id="send-btn" type="button">Send to Edison</button> <span id="send-status"></span></p>
+<div id="quality"></div>
+<p id="qr-empty" hidden>Nothing here yet. Tap "Quality review" on a question while you answer, finish the exam, and it shows up here.</p>
+</main>
+<script src="quality.js"></script>
+<script src="sync.js"></script>
+</body>
+</html>

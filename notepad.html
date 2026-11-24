@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Notepad</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+<p><a href="exams.html">&larr; Exams</a></p>
+<h1>Notepad — needs more work</h1>
+<p class="check-note">Questions you flagged and questions you answered wrong, from your latest attempt on each exam on this device — finished or still in progress. Notes save on this device.</p>
+<p id="np-counts" class="check-totals"></p>
+<p><button id="send-btn" type="button">Send to Edison</button> <span id="send-status"></span></p>
+<p class="np-filters">
+<button type="button" class="np-chip np-chip-on" data-f="all">All</button>
+<button type="button" class="np-chip" data-f="flagged">&#9733; Needs more work</button>
+<button type="button" class="np-chip" data-f="wrong">Answered wrong</button>
+</p>
+<div id="notepad"></div>
+<p id="np-empty" hidden>Nothing here yet. Flag a question while you answer, or finish an exam, and it shows up here.</p>
+</main>
+<script src="notepad.js"></script>
+<script src="sync.js"></script>
+</body>
+</html>

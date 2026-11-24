@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Exam</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+<p><a href="exams.html">&larr; Exams</a></p>
+<h1 id="exam-title">Exam</h1>
+<p id="progress"></p>
+<section id="question-box">
+<p id="topic-bar" hidden></p>
+<h2 id="question-text"></h2>
+<p id="source-line"></p>
+<div id="choices"></div>
+<p id="feedback" role="status"></p>
+<button id="back-btn" type="button" hidden>&#8592; Back</button>
+<button id="flag-btn" type="button">&#9734; Needs more work</button>
+<button id="quality-btn" type="button">&#9873; Quality review</button>
+<button id="next-btn" hidden>Next</button>
+<p class="rail"><a href="topics.html">Topics</a> · <a href="notepad.html">Notepad</a> · <a href="quality.html">Quality</a> · <a href="exams.html">Exams</a></p>
+</section>
+<section id="result-box" hidden>
+<h2 id="score"></h2>
+<h3>Missed questions</h3>
+<ol id="missed-list"></ol>
+<p id="no-missed" hidden>None — perfect score.</p>
+<h3>Flagged: needs more work</h3>
+<ol id="flagged-list"></ol>
+<p id="no-flagged" hidden>None need review.</p>
+<h3>Marked for quality review</h3>
+<ol id="quality-list"></ol>
+<p id="no-quality" hidden>None marked.</p>
+<p><a href="exams.html">Back to exams</a></p>
+<button id="retry-btn">Retry</button>
+</section>
+</main>
+<script src="exam.js"></script>
+<script src="sync.js"></script>
+</body>
+</html>
