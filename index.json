@@ -67,6 +67,14 @@
   {
    "category": "Workout Elements",
    "chapter": "Lower Body",
+   "file": "lowerbody-lower-abs.json",
+   "title": "Lower Body — Lower Abs",
+   "notes": true,
+   "region": "lower"
+  },
+  {
+   "category": "Workout Elements",
+   "chapter": "Lower Body",
    "file": "upperbody-lower-back.json",
    "title": "Lower Body — Lower back",
    "notes": true,
@@ -83,8 +91,64 @@
   {
    "category": "Workout Elements",
    "chapter": "Lower Body",
+   "file": "lowerbody-quadriceps.json",
+   "title": "Lower Body — Quadriceps",
+   "notes": true,
+   "region": "lower"
+  },
+  {
+   "category": "Workout Elements",
+   "chapter": "Lower Body",
+   "file": "lowerbody-vmo.json",
+   "title": "Lower Body — VMO",
+   "notes": true,
+   "region": "lower"
+  },
+  {
+   "category": "Workout Elements",
+   "chapter": "Lower Body",
+   "file": "lowerbody-gastrocnemius.json",
+   "title": "Lower Body — Gastrocnemius",
+   "notes": true,
+   "region": "lower"
+  },
+  {
+   "category": "Workout Elements",
+   "chapter": "Lower Body",
+   "file": "lowerbody-soleus.json",
+   "title": "Lower Body — Soleus",
+   "notes": true,
+   "region": "lower"
+  },
+  {
+   "category": "Workout Elements",
+   "chapter": "Lower Body",
    "file": "lowerbody-hip-muscles.json",
-   "title": "Lower Body — Hip Muscles",
+   "title": "Lower Body — Hips",
+   "notes": true,
+   "region": "lower"
+  },
+  {
+   "category": "Workout Elements",
+   "chapter": "Lower Body",
+   "file": "lowerbody-abductor.json",
+   "title": "Lower Body — Abductor",
+   "notes": true,
+   "region": "lower"
+  },
+  {
+   "category": "Workout Elements",
+   "chapter": "Lower Body",
+   "file": "lowerbody-adductor.json",
+   "title": "Lower Body — Adductor",
+   "notes": true,
+   "region": "lower"
+  },
+  {
+   "category": "Workout Elements",
+   "chapter": "Lower Body",
+   "file": "lowerbody-glutes.json",
+   "title": "Lower Body — Glutes",
    "notes": true,
    "region": "lower"
   },
