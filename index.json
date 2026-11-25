@@ -194,6 +194,14 @@
   },
   {
    "category": "Workout Elements",
+   "chapter": "Upper Body",
+   "file": "upperbody-upper-traps.json",
+   "title": "Upper Body — Upper Traps",
+   "notes": true,
+   "region": "upper"
+  },
+  {
+   "category": "Workout Elements",
    "chapter": "Running",
    "file": "running-1-mile.json",
    "title": "Running — 1 Mile",
