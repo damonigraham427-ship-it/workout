@@ -202,14 +202,6 @@
   },
   {
    "category": "Workout Elements",
-   "chapter": "Upper Body",
-   "file": "upperbody-50-reps-1-minute.json",
-   "title": "Upper Body — 50 Reps + 1 Minute (2x2)",
-   "notes": true,
-   "region": "upper"
-  },
-  {
-   "category": "Workout Elements",
    "chapter": "Running",
    "file": "running-1-mile.json",
    "title": "Running — 1 Mile",
