@@ -10,6 +10,11 @@ const progKey = 'noteProgress:' + file;
 let notes = [];
 let progress = {};
 const openSet = new Set();
+// In-place editing (Damoni, Nov 26, 2026): one edit at a time —
+// editEntry = the note text being renamed; editProg = {entry, j} for a
+// dated progress entry being edited.
+let editEntry = null;
+let editProg = null;
 
 function save() {
   try { localStorage.setItem(storeKey, JSON.stringify(notes)); } catch (err) { /* storage unavailable */ }
@@ -37,6 +42,11 @@ function render() {
   list.innerHTML = '';
   notes.forEach((text, i) => {
     const li = document.createElement('li');
+    if (editEntry === text) {
+      li.appendChild(buildEntryEditor(text, i));
+      list.appendChild(li);
+      return;
+    }
     li.textContent = text;
     const del = document.createElement('button');
     del.type = 'button';
@@ -44,10 +54,19 @@ function render() {
     del.textContent = '\u2715';
     del.addEventListener('click', () => {
       notes.splice(i, 1);
+      // Deleting an entry takes its progress entries with it.
+      if (progress[text]) { delete progress[text]; saveProgress(); }
+      openSet.delete(text);
       save();
       render();
     });
     li.appendChild(del);
+    const edit = document.createElement('button');
+    edit.type = 'button';
+    edit.className = 'prog-toggle';
+    edit.textContent = 'Edit';
+    edit.addEventListener('click', () => { editEntry = text; editProg = null; render(); });
+    li.appendChild(edit);
     const entries = Array.isArray(progress[text]) ? progress[text] : [];
     const toggle = document.createElement('button');
     toggle.type = 'button';
@@ -65,6 +84,51 @@ function render() {
   document.getElementById('no-notes').hidden = notes.length > 0;
 }
 
+// Rename an entry: the new name takes over the entry's slot and ALL its
+// attached data — its progress entries move to the new key, nothing is
+// orphaned or lost.
+function renameEntry(oldText, newText, i) {
+  newText = (newText || '').trim();
+  if (!newText || newText === oldText) { editEntry = null; render(); return; }
+  if (notes.indexOf(newText) !== -1) {
+    alert('Another entry already has that name.');
+    return;
+  }
+  notes[i] = newText;
+  if (progress[oldText]) {
+    const moved = progress[oldText];
+    delete progress[oldText];
+    progress[newText] = (progress[newText] || []).concat(moved);
+    progress[newText].sort((a, b) => (a.d < b.d ? -1 : a.d > b.d ? 1 : 0));
+    saveProgress();
+  }
+  if (openSet.has(oldText)) { openSet.delete(oldText); openSet.add(newText); }
+  editEntry = null;
+  save();
+  render();
+}
+
+function buildEntryEditor(text, i) {
+  const span = document.createElement('span');
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.value = text;
+  input.size = 32;
+  const saveBtn = document.createElement('button');
+  saveBtn.type = 'button';
+  saveBtn.textContent = 'Save';
+  saveBtn.addEventListener('click', () => renameEntry(text, input.value, i));
+  const cancel = document.createElement('button');
+  cancel.type = 'button';
+  cancel.textContent = 'Cancel';
+  cancel.addEventListener('click', () => { editEntry = null; render(); });
+  input.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') renameEntry(text, input.value, i); });
+  span.appendChild(input);
+  span.appendChild(saveBtn);
+  span.appendChild(cancel);
+  return span;
+}
+
 function buildProgressBox(text, entries) {
   const box = document.createElement('div');
   box.className = 'prog-box';
@@ -78,6 +142,40 @@ function buildProgressBox(text, entries) {
   ul.className = 'prog-list';
   entries.forEach((en, j) => {
     const li = document.createElement('li');
+    if (editProg && editProg.entry === text && editProg.j === j) {
+      const dateIn = document.createElement('input');
+      dateIn.type = 'date';
+      dateIn.className = 'prog-date';
+      dateIn.value = en.d || todayISO();
+      const textIn = document.createElement('input');
+      textIn.type = 'text';
+      textIn.className = 'prog-text';
+      textIn.value = en.t;
+      textIn.size = 28;
+      const saveBtn = document.createElement('button');
+      saveBtn.type = 'button';
+      saveBtn.textContent = 'Save';
+      saveBtn.addEventListener('click', () => {
+        const t = textIn.value.trim();
+        if (!t) return;
+        progress[text][j] = { d: dateIn.value || en.d, t };
+        progress[text].sort((a, b) => (a.d < b.d ? -1 : a.d > b.d ? 1 : 0));
+        editProg = null;
+        saveProgress();
+        render();
+      });
+      const cancel = document.createElement('button');
+      cancel.type = 'button';
+      cancel.textContent = 'Cancel';
+      cancel.addEventListener('click', () => { editProg = null; render(); });
+      textIn.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') saveBtn.click(); });
+      li.appendChild(dateIn);
+      li.appendChild(textIn);
+      li.appendChild(saveBtn);
+      li.appendChild(cancel);
+      ul.appendChild(li);
+      return;
+    }
     const when = document.createElement('strong');
     when.textContent = fmtDate(en.d);
     li.appendChild(when);
@@ -92,6 +190,12 @@ function buildProgressBox(text, entries) {
       render();
     });
     li.appendChild(del);
+    const edit = document.createElement('button');
+    edit.type = 'button';
+    edit.className = 'prog-toggle';
+    edit.textContent = 'Edit';
+    edit.addEventListener('click', () => { editProg = { entry: text, j }; editEntry = null; render(); });
+    li.appendChild(edit);
     ul.appendChild(li);
   });
   box.appendChild(ul);
