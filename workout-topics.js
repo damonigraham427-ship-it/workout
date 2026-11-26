@@ -12,6 +12,8 @@
   function wedge(cx, cy, r, a0, a1) { if (a1 - a0 >= Math.PI * 2) a1 = a0 + Math.PI * 2 - 0.0001; var x0 = cx + r * Math.cos(a0), y0 = cy + r * Math.sin(a0); var x1 = cx + r * Math.cos(a1), y1 = cy + r * Math.sin(a1); var large = (a1 - a0) > Math.PI ? 1 : 0; return 'M' + cx + ' ' + cy + ' L' + x0.toFixed(1) + ' ' + y0.toFixed(1) + ' A' + r + ' ' + r + ' 0 ' + large + ' 1 ' + x1.toFixed(1) + ' ' + y1.toFixed(1) + ' Z'; }
   function shortTitle(e) { var t = e.title || e.file; var pre = (e.category || '') + ' \u2014 '; if (t.indexOf(pre) === 0) t = t.slice(pre.length); ['Upper Body \u2014 ', 'Lower Body \u2014 ', 'Abdomen \u2014 '].forEach(function (pre2) { if (t.indexOf(pre2) === 0) t = t.slice(pre2.length); }); return t; }
   function ls(key) { try { return JSON.parse(localStorage.getItem(key) || 'null'); } catch (e) { return null; } }
+  function fmtProgDate(iso) { var p = String(iso || '').split('-'); return p.length === 3 ? (+p[1]) + '/' + (+p[2]) + '/' + p[0] : String(iso || ''); }
+  function todayStr() { var n = new Date(); function z(x) { return (x < 10 ? '0' : '') + x; } return n.getFullYear() + '-' + z(n.getMonth() + 1) + '-' + z(n.getDate()); }
 
   fetch('index.json', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (idx) {
     var body = new URLSearchParams(location.search).get('body');
@@ -27,6 +29,13 @@
         .catch(function () { return { entry: e, data: {} }; });
     }));
   }).then(function (groups) {
+    // Sync can land AFTER this page first renders (sync.js applies the
+    // cloud merge whenever it arrives and does not reload the page). The
+    // panel must show HIS lists, not the seed files — so the groups are
+    // computed by a function that can run again when the stored keys
+    // change, and a watcher re-runs it (Damoni, Nov 26, 2026: the Triceps
+    // slice showed the 1-item seed while his synced list has 5 entries).
+    function computeGroups() {
     groups.forEach(function (g, gi) {
       g.color = PALETTE[gi % PALETTE.length];
       g.name = shortTitle(g.entry);
@@ -55,20 +64,29 @@
           items = stored.slice();
           (g.data.notes || []).forEach(function (n) { if (items.indexOf(n) === -1) items.push(n); });
         } else items = (g.data.notes || []).slice();
-        g.rows = items.map(function (t) { return { text: t }; });
+        var prog = ls('noteProgress:' + f) || {};
+        g.rows = items.map(function (t) {
+          var arr = Array.isArray(prog[t]) ? prog[t].slice() : [];
+          arr.sort(function (x, y) { return (x.d < y.d ? -1 : x.d > y.d ? 1 : 0); });
+          return { text: t, latest: arr.length ? arr[arr.length - 1] : null };
+        });
         g.total = g.rows.length;
         g.dated = 0;
         g.pct = null;
       }
     });
+    }
+    computeGroups();
 
-    // Slice weight: item count, but never zero — an empty list (e.g. Static
-    // List before he adds to it) still gets a thin slice so it stays
-    // reachable from the circle.
+    var totalItems = 0, totalSteps = 0, totalDated = 0;
+    var svg = document.getElementById('tp-pie');
+    function renderPie() {
+    // Slice weight: item count, but never zero — an empty list still gets
+    // a thin slice so it stays reachable from the circle.
     groups.forEach(function (g) { g.w = Math.max(g.total, 1); });
-    var totalItems = groups.reduce(function (s, g) { return s + g.w; }, 0);
-    var totalSteps = groups.reduce(function (s, g) { return s + (g.kind === 'ladder' ? g.total : 0); }, 0);
-    var totalDated = groups.reduce(function (s, g) { return s + (g.kind === 'ladder' ? g.dated : 0); }, 0);
+    totalItems = groups.reduce(function (s, g) { return s + g.w; }, 0);
+    totalSteps = groups.reduce(function (s, g) { return s + (g.kind === 'ladder' ? g.total : 0); }, 0);
+    totalDated = groups.reduce(function (s, g) { return s + (g.kind === 'ladder' ? g.dated : 0); }, 0);
 
     // UP NEXT: first ladder (index order) that still has steps without dates.
     var up = null;
@@ -78,9 +96,8 @@
       upEl.hidden = false;
       upEl.innerHTML = 'UP NEXT: <strong>' + esc(up.name) + '</strong> \u00B7 ' + (up.total - up.dated) + ' steps without dates' +
         ' <a class="tp-practice" href="ladder.html?ladder=' + encodeURIComponent(up.entry.file) + '">Open list</a>';
-    }
+    } else if (upEl) { upEl.hidden = true; upEl.innerHTML = ''; }
 
-    var svg = document.getElementById('tp-pie');
     var CX = 210, CY = 210, R = 198, a = -Math.PI / 2, parts = [];
     groups.forEach(function (g, gi) {
       var span = totalItems ? (Math.PI * 2) * (g.w / totalItems) : 0;
@@ -102,6 +119,7 @@
     parts.push('<text id="tp-center-num" x="' + CX + '" y="' + (CY - 2) + '" text-anchor="middle" font-size="40" font-weight="700" fill="#0f172a"></text>');
     parts.push('<text id="tp-center-lab" x="' + CX + '" y="' + (CY + 24) + '" text-anchor="middle" font-size="14" fill="#475569"></text>');
     svg.innerHTML = parts.join('');
+    }
 
     var preview = -1, locked = -1;
     function active() { return preview >= 0 ? preview : locked; }
@@ -145,14 +163,41 @@
         });
         if (!g.rows.length) html += '<p class="tp-detail-hint">No entries yet.</p>';
       } else {
-        g.rows.forEach(function (r) {
+        // Note-list panel (Damoni, Nov 26, 2026): his items, each with
+        // ONLY its newest progress entry under it, plus an inline
+        // add-progress row per item — progress updates from this screen,
+        // saved to the same noteProgress data the note page reads.
+        g.rows.forEach(function (r, ri) {
           html += '<div class="tp-topic-row"><span class="tp-topic-name">' + esc(r.text) + '</span></div>';
+          if (r.latest) html += '<div class="tp-topic-row"><span class="tp-topic-meta">' + esc(fmtProgDate(r.latest.d)) + ' \u2014 ' + esc(r.latest.t) + '</span></div>';
+          html += '<div class="tp-topic-row tp-prog-add"><input type="date" class="tp-prog-date" data-ri="' + ri + '" value="' + todayStr() + '"><input type="text" class="tp-prog-text" data-ri="' + ri + '" placeholder="Add progress\u2026"><button type="button" class="tp-prog-btn" data-ri="' + ri + '">Add</button></div>';
         });
         if (!g.rows.length) html += '<p class="tp-detail-hint">No entries yet.</p>';
       }
       box.innerHTML = html;
       var rb = document.getElementById('tp-reset');
       if (rb) rb.addEventListener('click', function () { locked = -1; preview = -1; draw(); });
+      box.querySelectorAll('.tp-prog-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var ri = +btn.getAttribute('data-ri');
+          var g2 = groups[active()];
+          if (!g2 || g2.kind !== 'notes') return;
+          var item = g2.rows[ri];
+          if (!item) return;
+          var dIn = box.querySelector('.tp-prog-date[data-ri="' + ri + '"]');
+          var tIn = box.querySelector('.tp-prog-text[data-ri="' + ri + '"]');
+          var t = (tIn.value || '').trim();
+          if (!t) { tIn.focus(); return; }
+          var d = (dIn.value || '').trim() || todayStr();
+          var key = 'noteProgress:' + g2.entry.file;
+          var all = ls(key) || {};
+          if (!Array.isArray(all[item.text])) all[item.text] = [];
+          all[item.text].push({ d: d, t: t });
+          all[item.text].sort(function (x, y) { return (x.d < y.d ? -1 : x.d > y.d ? 1 : 0); });
+          try { localStorage.setItem(key, JSON.stringify(all)); } catch (e) { return; }
+          computeGroups(); renderPie(); draw();
+        });
+      });
     }
     function draw() {
       var gi = active();
@@ -167,6 +212,27 @@
       var gi = sliceFromEvent(ev);
       if (gi >= 0) { locked = (locked === gi) ? -1 : gi; preview = -1; draw(); }
     });
+    renderPie();
     draw();
+
+    // Watcher: if his synced data lands (or changes in another tab) after
+    // this page first drew, recompute and redraw so the panel always
+    // matches the note page.
+    function stateSig() {
+      var s = '';
+      groups.forEach(function (g) {
+        var f = g.entry.file;
+        s += f + '|' + (localStorage.getItem('workoutNotes:' + f) || '') + '|' + (localStorage.getItem('noteProgress:' + f) || '') + '|' + (localStorage.getItem('ladderDates:' + f) || '') + '|' + (localStorage.getItem('ladderAdded:' + f) || '') + ';';
+      });
+      return s;
+    }
+    var lastSig = stateSig();
+    function refreshIfChanged() {
+      var s = stateSig();
+      if (s !== lastSig) { lastSig = s; computeGroups(); renderPie(); draw(); }
+    }
+    var watchTicks = 0;
+    var watchTimer = setInterval(function () { refreshIfChanged(); if (++watchTicks > 24) clearInterval(watchTimer); }, 750);
+    window.addEventListener('storage', refreshIfChanged);
   }).catch(function () { document.getElementById('tp-note').textContent = 'Could not load the exam list.'; });
 })();
