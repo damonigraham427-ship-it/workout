@@ -267,30 +267,6 @@ if (!file) {
         document.querySelectorAll('.back-to-list').forEach(a => { a.href = backHref; });
       }
     }
-    // Moved lists (e.g. Static List moved from General into Upper Body —
-    // Damoni, Nov 26, 2026): the data file names the old file under
-    // "movedFrom"; adopt its saved entries and progress under the new
-    // key so nothing is lost. The old keys are left in place as a backup.
-    if (data && data.movedFrom) {
-      try {
-        const oldNotes = localStorage.getItem('workoutNotes:' + data.movedFrom);
-        if (oldNotes !== null && localStorage.getItem(storeKey) === null) {
-          localStorage.setItem(storeKey, oldNotes);
-        }
-        const oldProg = JSON.parse(localStorage.getItem('noteProgress:' + data.movedFrom) || 'null');
-        if (oldProg && typeof oldProg === 'object' && !Array.isArray(oldProg)) {
-          let changed = false;
-          Object.keys(oldProg).forEach(function (k) {
-            if (Array.isArray(oldProg[k]) && oldProg[k].length) {
-              progress[k] = (progress[k] || []).concat(oldProg[k]);
-              progress[k].sort((a, b) => (a.d < b.d ? -1 : a.d > b.d ? 1 : 0));
-              changed = true;
-            }
-          });
-          if (changed) saveProgress();
-        }
-      } catch (err) { /* carry-over is best-effort; the old keys remain */ }
-    }
     // Progress key renames (data file's "progressRenames"): progress logged
     // under an old entry name moves to the current name — merged, deduped
     // (same date + same text counts once), date-sorted. Nothing is lost.

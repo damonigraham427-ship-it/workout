@@ -16,7 +16,7 @@
   var PREFIXES = ['workoutNotes:', 'ladderDates:', 'ladderAdded:', 'ladderSets:', 'noteProgress:'];
   // Removed lists (Pump Circumference — Damoni, Nov 26, 2026): their stored
   // entries are purged on every device and deleted from the cloud copy.
-  var PURGE_KEYS = ['workoutNotes:workout-pump-circumference.json', 'noteProgress:workout-pump-circumference.json'];
+  var PURGE_KEYS = ['workoutNotes:workout-pump-circumference.json', 'noteProgress:workout-pump-circumference.json', 'workoutNotes:workout-static-list.json', 'noteProgress:workout-static-list.json', 'workoutNotes:upperbody-static-list.json', 'noteProgress:upperbody-static-list.json', 'workoutNotes:lowerbody-static-list.json', 'noteProgress:lowerbody-static-list.json', 'workoutNotes:abdomen-static-list.json', 'noteProgress:abdomen-static-list.json'];
 
   // ---- sync bar UI ----
   var bar = document.createElement('div');

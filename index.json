@@ -144,15 +144,7 @@
    "ladder": true,
    "region": "lower"
   },
-  {
-   "category": "Workout Elements",
-   "chapter": "Lower Body",
-   "file": "lowerbody-static-list.json",
-   "title": "Lower Body — Static List",
-   "notes": true,
-   "region": "lower"
-  },
-  {
+    {
    "category": "Workout Elements",
    "chapter": "Abdomen",
    "file": "upperbody-abdominals.json",
@@ -176,15 +168,7 @@
    "ladder": true,
    "region": "abdomen"
   },
-  {
-   "category": "Workout Elements",
-   "chapter": "Abdomen",
-   "file": "abdomen-static-list.json",
-   "title": "Abdomen — Static List",
-   "notes": true,
-   "region": "abdomen"
-  },
-  {
+    {
    "category": "Workout Elements",
    "chapter": "Upper Body",
    "file": "upperbody-biceps.json",
@@ -216,15 +200,7 @@
    "notes": true,
    "region": "upper"
   },
-  {
-   "category": "Workout Elements",
-   "chapter": "Upper Body",
-   "file": "upperbody-static-list.json",
-   "title": "Upper Body — Static List",
-   "notes": true,
-   "region": "upper"
-  },
-  {
+    {
    "category": "Workout Elements",
    "chapter": "Running",
    "file": "running-1-mile.json",
