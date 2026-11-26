@@ -1,10 +1,35 @@
 const params = new URLSearchParams(location.search);
 const file = params.get('notes');
 const storeKey = 'workoutNotes:' + file;
+// Progress sub-entries (Damoni, Nov 26, 2026): each note entry can hold
+// dated progress entries under it. New key — the existing keys
+// (workoutNotes:, ladderDates:, ladderAdded:, ladderSets:) are untouched.
+// Shape: { "<entry text>": [ {d: "YYYY-MM-DD", t: "progress note"}, ... ] }
+// kept in date order.
+const progKey = 'noteProgress:' + file;
 let notes = [];
+let progress = {};
+const openSet = new Set();
 
 function save() {
   try { localStorage.setItem(storeKey, JSON.stringify(notes)); } catch (err) { /* storage unavailable */ }
+}
+
+function saveProgress() {
+  try { localStorage.setItem(progKey, JSON.stringify(progress)); } catch (err) { /* storage unavailable */ }
+}
+
+function fmtDate(iso) {
+  const p = String(iso || '').split('-');
+  if (p.length !== 3) return iso || '';
+  return Number(p[1]) + '/' + Number(p[2]) + '/' + p[0];
+}
+
+function todayISO() {
+  const d = new Date();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return d.getFullYear() + '-' + m + '-' + day;
 }
 
 function render() {
@@ -23,9 +48,83 @@ function render() {
       render();
     });
     li.appendChild(del);
+    const entries = Array.isArray(progress[text]) ? progress[text] : [];
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'prog-toggle';
+    const open = openSet.has(text);
+    toggle.textContent = 'Progress (' + entries.length + ') ' + (open ? '\u25B2' : '\u25BC');
+    toggle.addEventListener('click', () => {
+      if (openSet.has(text)) openSet.delete(text); else openSet.add(text);
+      render();
+    });
+    li.appendChild(toggle);
+    if (open) li.appendChild(buildProgressBox(text, entries));
     list.appendChild(li);
   });
   document.getElementById('no-notes').hidden = notes.length > 0;
+}
+
+function buildProgressBox(text, entries) {
+  const box = document.createElement('div');
+  box.className = 'prog-box';
+  if (!entries.length) {
+    const p = document.createElement('p');
+    p.className = 'prog-empty';
+    p.textContent = 'No progress logged yet.';
+    box.appendChild(p);
+  }
+  const ul = document.createElement('ul');
+  ul.className = 'prog-list';
+  entries.forEach((en, j) => {
+    const li = document.createElement('li');
+    const when = document.createElement('strong');
+    when.textContent = fmtDate(en.d);
+    li.appendChild(when);
+    li.appendChild(document.createTextNode(' — ' + en.t));
+    const del = document.createElement('button');
+    del.type = 'button';
+    del.className = 'note-del';
+    del.textContent = '\u2715';
+    del.addEventListener('click', () => {
+      progress[text].splice(j, 1);
+      saveProgress();
+      render();
+    });
+    li.appendChild(del);
+    ul.appendChild(li);
+  });
+  box.appendChild(ul);
+  const row = document.createElement('p');
+  row.className = 'prog-add';
+  const dateIn = document.createElement('input');
+  dateIn.type = 'date';
+  dateIn.className = 'prog-date';
+  dateIn.value = todayISO();
+  const textIn = document.createElement('input');
+  textIn.type = 'text';
+  textIn.className = 'prog-text';
+  textIn.placeholder = 'Progress note';
+  textIn.size = 28;
+  const add = document.createElement('button');
+  add.type = 'button';
+  add.textContent = 'Add progress';
+  const doAdd = () => {
+    const t = textIn.value.trim();
+    if (!t) return;
+    if (!Array.isArray(progress[text])) progress[text] = [];
+    progress[text].push({ d: dateIn.value || todayISO(), t });
+    progress[text].sort((a, b) => (a.d < b.d ? -1 : a.d > b.d ? 1 : 0));
+    saveProgress();
+    render();
+  };
+  add.addEventListener('click', doAdd);
+  textIn.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') doAdd(); });
+  row.appendChild(dateIn);
+  row.appendChild(textIn);
+  row.appendChild(add);
+  box.appendChild(row);
+  return box;
 }
 
 function addNote() {
@@ -48,6 +147,10 @@ if (!file) {
   document.getElementById('notes-title').textContent = 'Notes';
   document.getElementById('no-notes').hidden = false;
 } else {
+  try {
+    const storedProg = JSON.parse(localStorage.getItem(progKey) || 'null');
+    if (storedProg && typeof storedProg === 'object' && !Array.isArray(storedProg)) progress = storedProg;
+  } catch (err) { progress = {}; }
   Promise.all([
     fetch('index.json', { cache: 'no-store' }).then(r => r.json()).catch(() => null),
     fetch(file, { cache: 'no-store' }).then(r => r.json()).catch(() => null)
@@ -70,6 +173,15 @@ if (!file) {
       }
     } else if (data && Array.isArray(data.notes)) {
       notes = data.notes.slice();
+    }
+    // Retired entries (e.g. a category name that sat inside its own list,
+    // "Pectorals" in Chest — Damoni, Nov 26, 2026): the data file names
+    // them under "retired"; drop them from the stored list too and save,
+    // so the fix reaches lists already saved on a device.
+    if (data && Array.isArray(data.retired) && data.retired.length) {
+      const before = notes.length;
+      notes = notes.filter(function (n) { return data.retired.indexOf(n) === -1; });
+      if (notes.length !== before) save();
     }
     render();
   });
