@@ -455,6 +455,8 @@ function show() {
   document.getElementById('back-btn').hidden = idx === 0;
   refreshFlagBtn();
   refreshQualityBtn();
+  const qp = document.getElementById('quality-panel');
+  if (qp) qp.hidden = true;
   const box = document.getElementById('choices');
   box.innerHTML = '';
   q.choices.forEach((c, i) => {
@@ -572,10 +574,67 @@ document.getElementById('flag-btn').onclick = () => {
   refreshQualityBtn();
   saveProgress();
 };
-document.getElementById('quality-btn').onclick = () => {
-  if (quality.has(idx)) quality.delete(idx); else quality.add(idx);
+document.getElementById('quality-btn').onclick = () => { openQualityPanel(); };
+
+// Inline quality review (Damoni, Nov 25, 2026): the Quality review button
+// opens the form right here in the exam \u2014 no trip to the Quality page,
+// no losing his place in the run. The comment saves to the same
+// qualityNotes key the Quality page uses, and Send reports through the
+// same examSync.sendReport path, so the ping to Edison works exactly as
+// before. The Quality page itself is unchanged and still shows everything
+// marked, finished or in progress.
+function qualityNotesAll() {
+  try { return JSON.parse(localStorage.getItem('qualityNotes') || '{}'); } catch (e) { return {}; }
+}
+function qualityNoteKey() { return storageKey + '||' + exam.questions[idx].question; }
+function saveQualityComment() {
+  const ta = document.getElementById('quality-comment');
+  if (!ta) return;
+  const notes = qualityNotesAll();
+  notes[qualityNoteKey()] = ta.value;
+  try { localStorage.setItem('qualityNotes', JSON.stringify(notes)); } catch (e) { /* storage unavailable */ }
+}
+function openQualityPanel() {
+  if (!quality.has(idx)) { quality.add(idx); refreshQualityBtn(); saveProgress(); }
+  document.getElementById('quality-q').textContent = exam.questions[idx].question;
+  document.getElementById('quality-comment').value = qualityNotesAll()[qualityNoteKey()] || '';
+  document.getElementById('quality-status').textContent = '';
+  document.getElementById('quality-panel').hidden = false;
+}
+document.getElementById('quality-comment').addEventListener('change', saveQualityComment);
+document.getElementById('quality-close').onclick = () => { saveQualityComment(); document.getElementById('quality-panel').hidden = true; };
+document.getElementById('quality-unmark').onclick = () => {
+  saveQualityComment();
+  quality.delete(idx);
   refreshQualityBtn();
   saveProgress();
+  document.getElementById('quality-panel').hidden = true;
+};
+document.getElementById('quality-send').onclick = () => {
+  saveQualityComment();
+  const status = document.getElementById('quality-status');
+  const btn = document.getElementById('quality-send');
+  const notes = qualityNotesAll();
+  const items = buildLive().qualityQs.map(function (m) {
+    return { n: m.n, question: m.question, correct: m.correct, explanation: m.explanation || '', comment: notes[storageKey + '||' + m.question] || '', result: m.result || '' };
+  });
+  if (!items.length) { status.textContent = 'Nothing to send yet.'; return; }
+  const report = { id: 'r' + Date.now(), ts: new Date().toISOString(), page: 'quality', groups: [{ title: examTitle + ' \u2014 in progress', items: items }] };
+  btn.disabled = true;
+  status.textContent = 'Sending\u2026';
+  const wait = setInterval(function () {
+    if (window.examSync) {
+      clearInterval(wait);
+      window.examSync.sendReport(report).then(function () {
+        status.textContent = 'Sent \u2713 \u2014 Edison will message you to discuss.';
+        btn.disabled = false;
+      }).catch(function () {
+        status.textContent = 'Could not send \u2014 sign in to sync first (blue bar at the top), then try again.';
+        btn.disabled = false;
+      });
+    }
+  }, 200);
+  setTimeout(function () { clearInterval(wait); if (btn.disabled) { status.textContent = 'Could not send \u2014 sign in to sync first (blue bar at the top), then try again.'; btn.disabled = false; } }, 12000);
 };
 document.getElementById('next-btn').onclick = () => {
   idx++;
