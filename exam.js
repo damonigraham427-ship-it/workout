@@ -16,8 +16,10 @@ const answers = [];
 let lastMissed = [];
 let lastFlagged = [];
 let lastQuality = [];
+let lastResearch = [];
 const flagged = new Set();
 const quality = new Set();
+const research = new Set();
 let entry = null;
 let runOrder = null;
 // Time tracker: ACTIVE time only (changed Nov 24, 2026). 'secs' banks
@@ -195,12 +197,20 @@ function shuffleIdx(n) {
   return a;
 }
 
+// Population run (NREMT hub, Damoni, Nov 26, 2026): a virtual exam whose
+// questions were collected by population.js from many sets — new questions
+// and his ★ / ⚑ marks. Each question carries srcFile/srcIdx so finish()
+// can write the answers back into the source sets.
+const isPopulation = file === '__population__';
+const populationManifest = isPopulation ? (() => { try { return JSON.parse(localStorage.getItem('populationRun') || 'null'); } catch (e) { return null; } })() : null;
+
 Promise.all([
   fetch('index.json', { cache: 'no-store' }).then(r => r.json()).catch(() => null),
-  fetch(file, { cache: 'no-store' }).then(r => r.json())
+  isPopulation ? Promise.resolve(populationManifest) : fetch(file, { cache: 'no-store' }).then(r => r.json())
 ]).then(([idxData, data]) => {
   entry = ((idxData && idxData.exams) || []).find(e => e.file === file) || null;
   if (entry) examTitle = entry.title;
+  if (isPopulation) examTitle = (data && data.title) || 'Population \u2014 new & marked';
   // Back links return to this exam's own subject page, not the top-level
   // list (Damoni, Nov 23, 2026): NREMT -> its chapter circle, the number
   // series -> their circle pages, anything else -> its subject exam list.
@@ -266,6 +276,7 @@ Promise.all([
         (p.answers || []).forEach((a, i) => { answers[i] = a; });
         (p.flagged || []).forEach(i => flagged.add(i));
         (p.quality || []).forEach(i => quality.add(i));
+        (p.research || []).forEach(i => research.add(i));
       }
     } else if (isTier) {
       const lo = Math.floor(tierB * pool.length / 20);
@@ -278,6 +289,7 @@ Promise.all([
         (p.answers || []).forEach((a, i) => { answers[i] = a; });
         (p.flagged || []).forEach(i => flagged.add(i));
         (p.quality || []).forEach(i => quality.add(i));
+        (p.research || []).forEach(i => research.add(i));
       }
     } else if (isMeta10) {
       const blockQs = buildBlockQuestions(pool);
@@ -290,6 +302,7 @@ Promise.all([
         (p.answers || []).forEach((a, i) => { answers[i] = a; });
         (p.flagged || []).forEach(i => flagged.add(i));
         (p.quality || []).forEach(i => quality.add(i));
+        (p.research || []).forEach(i => research.add(i));
         restored = true;
       }
       if (!restored) runOrder = shuffleIdx(blockQs.length);
@@ -305,6 +318,7 @@ Promise.all([
         (p.answers || []).forEach((a, i) => { answers[i] = a; });
         (p.flagged || []).forEach(i => flagged.add(i));
         (p.quality || []).forEach(i => quality.add(i));
+        (p.research || []).forEach(i => research.add(i));
         restored = true;
       }
       if (!restored) runOrder = shuffleIdx(metaQs.length);
@@ -321,6 +335,7 @@ Promise.all([
         (p.answers || []).forEach((a, i) => { answers[i] = a; });
         (p.flagged || []).forEach(i => flagged.add(i));
         (p.quality || []).forEach(i => quality.add(i));
+        (p.research || []).forEach(i => research.add(i));
         restored = true;
       }
       if (!restored) runOrder = shuffleIdx(drawN).map(i => picks[i]);
@@ -336,6 +351,7 @@ Promise.all([
         (p.answers || []).forEach((a, i) => { answers[i] = a; });
         (p.flagged || []).forEach(i => flagged.add(i));
         (p.quality || []).forEach(i => quality.add(i));
+        (p.research || []).forEach(i => research.add(i));
         restored = true;
       }
       if (!restored) {
@@ -359,6 +375,7 @@ Promise.all([
         (p.answers || []).forEach((a, i) => { answers[i] = a; });
         (p.flagged || []).forEach(i => flagged.add(i));
         (p.quality || []).forEach(i => quality.add(i));
+        (p.research || []).forEach(i => research.add(i));
         restored = true;
       }
       if (!restored) runOrder = shuffleIdx(pool.length).slice(0, drawN);
@@ -369,6 +386,7 @@ Promise.all([
       (p.answers || []).forEach((a, i) => { answers[i] = a; });
       (p.flagged || []).forEach(i => flagged.add(i));
       (p.quality || []).forEach(i => quality.add(i));
+      (p.research || []).forEach(i => research.add(i));
     }
   } catch (e) { /* no saved progress */ }
   resetSegment();
@@ -381,6 +399,14 @@ function refreshFlagBtn() {
   const on = flagged.has(idx);
   btn.textContent = on ? '\u2605 Flagged: needs more work' : '\u2606 Needs more work';
   btn.classList.toggle('flagged-on', on);
+}
+
+function refreshResearchBtn() {
+  const btn = document.getElementById('research-btn');
+  if (!btn) return;
+  const on = research.has(idx);
+  btn.textContent = on ? '\uD83D\uDD0E Marked for further research' : '\uD83D\uDD0E Further research';
+  btn.classList.toggle('research-on', on);
 }
 
 function refreshQualityBtn() {
@@ -409,12 +435,12 @@ function buildLive() {
   exam.questions.forEach((q, i) => {
     if (answers[i] !== undefined && answers[i] !== q.answer) missedQs.push(snap(i, { your: q.choices[answers[i]] }));
   });
-  return { title: examTitle, flaggedQs: marked(flagged), qualityQs: marked(quality), missedQs: missedQs };
+  return { title: examTitle, flaggedQs: marked(flagged), qualityQs: marked(quality), researchQs: [...research].sort((a, b) => a - b).map(i => snap(i, { topic: exam.questions[i].topic || '', result: answers[i] === exam.questions[i].answer ? 'answered correctly' : 'answered incorrectly' })), missedQs: missedQs };
 }
 function saveProgress() {
   try {
     const all = JSON.parse(localStorage.getItem(PKEY) || '{}');
-    const rec = { idx: idx, answers: answers, flagged: [...flagged], quality: [...quality], score: score, total: exam.questions.length, ts: Date.now(), secs: elapsedSecs(), live: buildLive() };
+    const rec = { idx: idx, answers: answers, flagged: [...flagged], quality: [...quality], research: [...research], score: score, total: exam.questions.length, ts: Date.now(), secs: elapsedSecs(), live: buildLive() };
     if (runOrder) rec.order = runOrder;
     all[storageKey] = rec;
     localStorage.setItem(PKEY, JSON.stringify(all));
@@ -455,8 +481,11 @@ function show() {
   document.getElementById('back-btn').hidden = idx === 0;
   refreshFlagBtn();
   refreshQualityBtn();
+  refreshResearchBtn();
   const qp = document.getElementById('quality-panel');
   if (qp) qp.hidden = true;
+  const rp = document.getElementById('research-panel');
+  if (rp) rp.hidden = true;
   const box = document.getElementById('choices');
   box.innerHTML = '';
   q.choices.forEach((c, i) => {
@@ -555,6 +584,34 @@ function finish() {
   });
   document.getElementById('no-quality').hidden = lastQuality.length !== 0;
 
+  // Further research (Damoni, Nov 26, 2026): the question was RESOURCEFUL —
+  // he wants the depth in its context turned into NEW questions. The full
+  // context (exam, set, topic, question, correct answer, explanation)
+  // rides the attempt record and the outbox report below.
+  lastResearch = [...research].sort((a, b) => a - b).map(i => {
+    const q = exam.questions[i];
+    return {
+      n: i + 1,
+      question: q.question,
+      topic: q.topic || '',
+      source: q.source || '',
+      correct: q.choices[q.answer],
+      explanation: q.explanation || '',
+      comment: researchNotesAll()[storageKey + '||' + q.question] || '',
+      result: answers[i] === q.answer ? 'answered correctly' : 'answered incorrectly'
+    };
+  });
+  const rlist = document.getElementById('research-list');
+  if (rlist) {
+    rlist.innerHTML = '';
+    lastResearch.forEach(m => {
+      const li = document.createElement('li');
+      li.textContent = m.question + ' — Correct: ' + m.correct + (m.topic ? ' · Topic: ' + m.topic : '') + (m.explanation ? ' · ' + m.explanation : '');
+      rlist.appendChild(li);
+    });
+    document.getElementById('no-research').hidden = lastResearch.length !== 0;
+  }
+
   try {
     const all = JSON.parse(localStorage.getItem('examHistory') || '{}');
     if (!Array.isArray(all[storageKey])) all[storageKey] = [];
@@ -562,19 +619,165 @@ function finish() {
     // (Hour series: Start/Coverage draw 20 of up to 365) can be mapped back
     // to tiers/topics exactly. Without it, only missed/marked questions are
     // recoverable from history. Harmless for NREMT full-set runs.
-    all[storageKey].unshift({ ts: new Date().toISOString(), title: examTitle, score: score, total: exam.questions.length, secs: elapsedSecs(), missed: lastMissed, flagged: lastFlagged, quality: lastQuality, asked: exam.questions.map(function (q) { return q.question; }) });
+    all[storageKey].unshift({ ts: new Date().toISOString(), title: examTitle, score: score, total: exam.questions.length, secs: elapsedSecs(), missed: lastMissed, flagged: lastFlagged, quality: lastQuality, research: lastResearch, asked: exam.questions.map(function (q) { return q.question; }) });
     all[storageKey] = all[storageKey].slice(0, 20);
     localStorage.setItem('examHistory', JSON.stringify(all));
   } catch (e) { /* storage unavailable; results still shown on screen */ }
+
+  if (isPopulation) writeBackPopulation();
+}
+
+// Population write-back (NREMT hub, Damoni, Nov 26, 2026): answers given
+// in the population run land in each source set's own progress, exactly
+// as if answered in place. If a set ends up fully answered, a finished
+// attempt is recorded for it (score, missed, marks) and its saved place
+// clears — the chapter pie moves from there. Marks made in the
+// population run merge into the source sets' mark sets too.
+function writeBackPopulation() {
+  const byFile = {};
+  exam.questions.forEach((q, i) => {
+    if (q.srcFile) (byFile[q.srcFile] = byFile[q.srcFile] || []).push(i);
+  });
+  const files = Object.keys(byFile);
+  if (!files.length) return;
+  let hist = {};
+  let prog = {};
+  try { hist = JSON.parse(localStorage.getItem('examHistory') || '{}'); } catch (e) { /* ignore */ }
+  try { prog = JSON.parse(localStorage.getItem(PKEY) || '{}'); } catch (e) { /* ignore */ }
+  const notes = researchNotesAll();
+  files.forEach(srcFile => {
+    fetch(srcFile, { cache: 'no-store' }).then(r => r.json()).then(data => {
+      const qs = data.questions || [];
+      if (!qs.length) return;
+      const rec = prog[srcFile] || {};
+      const mergedAnswers = Array.isArray(rec.answers) ? rec.answers.slice() : [];
+      const fSet = new Set(rec.flagged || []), qSet = new Set(rec.quality || []), rSet = new Set(rec.research || []);
+      let srcTitle = srcFile;
+      byFile[srcFile].forEach(i => {
+        const q = exam.questions[i], si = q.srcIdx;
+        if (q.srcTitle) srcTitle = q.srcTitle;
+        if (answers[i] !== undefined) mergedAnswers[si] = answers[i];
+        if (flagged.has(i)) fSet.add(si);
+        if (quality.has(i)) qSet.add(si);
+        if (research.has(i)) rSet.add(si);
+      });
+      const snap = (si, extra) => {
+        const q = qs[si];
+        const o = { n: si + 1, question: q.question, source: q.source || '', correct: q.choices[q.answer], explanation: q.explanation || '' };
+        if (extra) Object.assign(o, extra);
+        return o;
+      };
+      const resOf = si => mergedAnswers[si] === qs[si].answer ? 'answered correctly' : 'answered incorrectly';
+      const markedFrom = set => [...set].sort((a, b) => a - b).map(si => snap(si, { result: resOf(si) }));
+      const complete = qs.every((_, si) => mergedAnswers[si] !== undefined);
+      if (complete) {
+        let sc = 0;
+        const missed = [];
+        qs.forEach((q, si) => {
+          if (mergedAnswers[si] === q.answer) sc++;
+          else missed.push(snap(si, { your: q.choices[mergedAnswers[si]] }));
+        });
+        const rl = [...rSet].sort((a, b) => a - b).map(si => snap(si, { topic: qs[si].topic || '', comment: notes[srcFile + '||' + qs[si].question] || '', result: resOf(si) }));
+        if (!Array.isArray(hist[srcFile])) hist[srcFile] = [];
+        hist[srcFile].unshift({ ts: new Date().toISOString(), title: srcTitle, score: sc, total: qs.length, secs: 0, missed: missed, flagged: markedFrom(fSet), quality: markedFrom(qSet), research: rl, asked: qs.map(q => q.question) });
+        hist[srcFile] = hist[srcFile].slice(0, 20);
+        delete prog[srcFile];
+      } else {
+        let sc = 0;
+        const missedQs = [];
+        qs.forEach((q, si) => {
+          if (mergedAnswers[si] === q.answer) sc++;
+          else if (mergedAnswers[si] !== undefined) missedQs.push(snap(si, { your: q.choices[mergedAnswers[si]] }));
+        });
+        const firstOpen = qs.findIndex((_, si) => mergedAnswers[si] === undefined);
+        prog[srcFile] = {
+          idx: firstOpen < 0 ? 0 : firstOpen, answers: mergedAnswers,
+          flagged: [...fSet], quality: [...qSet], research: [...rSet],
+          score: sc, total: qs.length, ts: Date.now(), secs: rec.secs || 0,
+          live: {
+            title: srcTitle, flaggedQs: markedFrom(fSet), qualityQs: markedFrom(qSet),
+            researchQs: [...rSet].sort((a, b) => a - b).map(si => snap(si, { topic: qs[si].topic || '', result: resOf(si) })),
+            missedQs: missedQs
+          }
+        };
+      }
+      try { localStorage.setItem('examHistory', JSON.stringify(hist)); } catch (e) { /* ignore */ }
+      try { localStorage.setItem(PKEY, JSON.stringify(prog)); } catch (e) { /* ignore */ }
+    }).catch(() => { /* a source file that fails to load keeps its old state */ });
+  });
 }
 
 document.getElementById('flag-btn').onclick = () => {
   if (flagged.has(idx)) flagged.delete(idx); else flagged.add(idx);
   refreshFlagBtn();
   refreshQualityBtn();
+  refreshResearchBtn();
   saveProgress();
 };
 document.getElementById('quality-btn').onclick = () => { openQualityPanel(); };
+document.getElementById('research-btn').onclick = () => { openResearchPanel(); };
+
+// Inline further research (Damoni, Nov 26, 2026): the button opens a
+// comment form right here in the exam — same in-page pattern as the
+// quality review form, fillable mid-test without losing his place. The
+// comment saves to the researchNotes key (synced), and Send reports
+// through examSync.sendReport as its own type (page/type 'research')
+// carrying the comment plus the full question context (exam, set, topic,
+// question, correct answer, explanation) — straight to Edison, no
+// separate page, no download.
+function researchNotesAll() {
+  try { return JSON.parse(localStorage.getItem('researchNotes') || '{}'); } catch (e) { return {}; }
+}
+function researchNoteKey() { return storageKey + '||' + exam.questions[idx].question; }
+function saveResearchComment() {
+  const ta = document.getElementById('research-comment');
+  if (!ta) return;
+  const notes = researchNotesAll();
+  notes[researchNoteKey()] = ta.value;
+  try { localStorage.setItem('researchNotes', JSON.stringify(notes)); } catch (e) { /* storage unavailable */ }
+}
+function openResearchPanel() {
+  if (!research.has(idx)) { research.add(idx); refreshResearchBtn(); saveProgress(); }
+  document.getElementById('research-q').textContent = exam.questions[idx].question;
+  document.getElementById('research-comment').value = researchNotesAll()[researchNoteKey()] || '';
+  document.getElementById('research-status').textContent = '';
+  document.getElementById('research-panel').hidden = false;
+}
+document.getElementById('research-comment').addEventListener('change', saveResearchComment);
+document.getElementById('research-close').onclick = () => { saveResearchComment(); document.getElementById('research-panel').hidden = true; };
+document.getElementById('research-unmark').onclick = () => {
+  saveResearchComment();
+  research.delete(idx);
+  refreshResearchBtn();
+  saveProgress();
+  document.getElementById('research-panel').hidden = true;
+};
+document.getElementById('research-send').onclick = () => {
+  saveResearchComment();
+  const status = document.getElementById('research-status');
+  const btn = document.getElementById('research-send');
+  const notes = researchNotesAll();
+  const items = buildLive().researchQs.map(function (m) {
+    return { n: m.n, question: m.question, topic: m.topic || '', correct: m.correct, explanation: m.explanation || '', comment: notes[storageKey + '||' + m.question] || '', result: m.result || '' };
+  });
+  if (!items.length) { status.textContent = 'Nothing to send yet.'; return; }
+  const report = { id: 'fr' + Date.now(), ts: new Date().toISOString(), page: 'research', type: 'research', file: storageKey, groups: [{ title: examTitle + ' \u2014 in progress', items: items }] };
+  btn.disabled = true;
+  status.textContent = 'Sending\u2026';
+  const wait = setInterval(function () {
+    if (window.examSync) {
+      clearInterval(wait);
+      window.examSync.sendReport(report).then(function () {
+        status.textContent = 'Sent \u2713 \u2014 Edison will message you to discuss.';
+        btn.disabled = false;
+      }).catch(function () {
+        status.textContent = 'Could not send \u2014 sign in to sync first (blue bar at the top), then try again.';
+        btn.disabled = false;
+      });
+    }
+  }, 200);
+  setTimeout(function () { clearInterval(wait); if (btn.disabled) { status.textContent = 'Could not send \u2014 sign in to sync first (blue bar at the top), then try again.'; btn.disabled = false; } }, 12000);
+};
 
 // Inline quality review (Damoni, Nov 25, 2026): the Quality review button
 // opens the form right here in the exam \u2014 no trip to the Quality page,

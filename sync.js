@@ -12,7 +12,7 @@
     appId: "1:534075148283:web:8d7d1110bbd561dcc0ed5e"
   };
 
-  var EXACT_KEYS = ['examHistory', 'examProgress', 'notepadNotes', 'notepadCleared', 'qualityNotes', 'qualityCleared', 'backdoorLog', 'frontChecklist'];
+  var EXACT_KEYS = ['examHistory', 'examProgress', 'notepadNotes', 'notepadCleared', 'qualityNotes', 'qualityCleared', 'researchNotes', 'backdoorLog', 'frontChecklist'];
   var PREFIXES = ['workoutNotes:', 'ladderDates:', 'ladderAdded:', 'ladderSets:', 'noteProgress:'];
   // Removed lists (Pump Circumference — Damoni, Nov 26, 2026): their stored
   // entries are purged on every device and deleted from the cloud copy.

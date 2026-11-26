@@ -120,6 +120,8 @@ button.choice.wrong { background: #fee2e2; border-color: #dc2626; }
 /* Quality review button + state */
 #quality-btn { padding: 0.55rem 1rem; border-radius: 8px; border: 2px solid #7c3aed; background: #fff; color: #0f172a; font-weight: 600; font-size: 1rem; cursor: pointer; margin-right: 0.5rem; }
 #quality-btn.quality-on { background: #ede9fe; }
+#research-btn { padding: 0.55rem 1rem; border-radius: 8px; border: 2px solid #0e7490; background: #fff; color: #0f172a; font-weight: 600; font-size: 1rem; cursor: pointer; margin-right: 0.5rem; }
+#research-btn.research-on { background: #cffafe; }
 
 /* Sync bar */
 .sync-bar { display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; max-width: 960px; margin: 0 auto 0.5rem; padding: 0.45rem 0.8rem; background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 8px; font-size: 0.9rem; color: #1e293b; }
