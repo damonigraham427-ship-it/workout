@@ -43,10 +43,6 @@ fetch('index.json', { cache: 'no-store' })
         }));
       });
     };
-    const top = document.getElementById('wo-top');
-    if (top) top.appendChild(woCard('Next-up Checklist', 'every category\u2019s next step \u00B7 date it, the next pops up', '#16a34a', () => {
-      location.href = 'checklist.html';
-    }));
     fill('wo-circles', WO_REGIONS, 0);
     fill('wo-cardio', WO_CARDIO, 3);
   })

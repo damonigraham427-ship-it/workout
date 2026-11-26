@@ -20,7 +20,9 @@
     document.title = 'Workout Elements \u2014 ' + regionName;
     var h1 = document.getElementById('tp-title');
     if (h1) h1.textContent = 'Workout Elements \u2014 ' + regionName;
-    var entries = (idx.exams || []).filter(function (e) { return e.category === 'Workout Elements' && e.region === body; });
+    // Static List slices are off the pies (Damoni, Nov 26, 2026) — the
+    // lists and their stored entries stay, just with no pie section.
+    var entries = (idx.exams || []).filter(function (e) { return e.category === 'Workout Elements' && e.region === body && !/static-list\.json$/.test(e.file); });
     return Promise.all(entries.map(function (e) {
       return fetch(e.file, { cache: 'no-store' }).then(function (r) { return r.json(); })
         .then(function (d) { return { entry: e, data: d || {} }; })
