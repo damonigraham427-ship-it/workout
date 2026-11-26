@@ -310,6 +310,21 @@ if (!file) {
       notes = notes.filter(function (n) { return data.retired.indexOf(n) === -1; });
       if (notes.length !== before) save();
     }
+    // Item renames (data file's "noteRenames"): an entry whose stored
+    // name was corrupted or superseded takes its current name. If the
+    // current name already exists in the list, the renamed copy drops.
+    if (data && data.noteRenames && typeof data.noteRenames === 'object') {
+      let changed = false;
+      Object.keys(data.noteRenames).forEach(function (oldName) {
+        const newName = data.noteRenames[oldName];
+        const i = notes.indexOf(oldName);
+        if (i === -1) return;
+        if (notes.indexOf(newName) === -1) notes[i] = newName;
+        else notes.splice(i, 1);
+        changed = true;
+      });
+      if (changed) save();
+    }
     render();
   });
 }
