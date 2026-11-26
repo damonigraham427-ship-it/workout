@@ -14,6 +14,9 @@
 
   var EXACT_KEYS = ['examHistory', 'examProgress', 'notepadNotes', 'notepadCleared', 'qualityNotes', 'qualityCleared', 'backdoorLog', 'frontChecklist'];
   var PREFIXES = ['workoutNotes:', 'ladderDates:', 'ladderAdded:', 'ladderSets:', 'noteProgress:'];
+  // Removed lists (Pump Circumference — Damoni, Nov 26, 2026): their stored
+  // entries are purged on every device and deleted from the cloud copy.
+  var PURGE_KEYS = ['workoutNotes:workout-pump-circumference.json', 'noteProgress:workout-pump-circumference.json'];
 
   // ---- sync bar UI ----
   var bar = document.createElement('div');
@@ -46,8 +49,10 @@
 
   var auth = null, db = null, uid = null, applying = false, pushTimer = null, userEmail = '';
   var origSet = localStorage.setItem.bind(localStorage);
+  PURGE_KEYS.forEach(function (k) { try { localStorage.removeItem(k); } catch (e) {} });
 
   function isSyncKey(k) {
+    if (PURGE_KEYS.indexOf(k) !== -1) return false;
     if (EXACT_KEYS.indexOf(k) !== -1) return true;
     return PREFIXES.some(function (p) { return k.indexOf(p) === 0; });
   }
@@ -229,6 +234,12 @@
       btn.onclick = function () { auth.signOut(); };
       db.collection('users').doc(uid).get().then(function (snap) {
         var remote = snap.exists ? (snap.data().state || {}) : {};
+        PURGE_KEYS.forEach(function (k) { delete remote[k]; });
+        try {
+          var delArgs = [];
+          PURGE_KEYS.forEach(function (k) { delArgs.push(new firebase.firestore.FieldPath('state', k), firebase.firestore.FieldValue.delete()); });
+          if (delArgs.length) db.collection('users').doc(uid).update.apply(db.collection('users').doc(uid), delArgs).catch(function () {});
+        } catch (e) {}
         var local = collectState();
         var merged = mergeState(local, remote);
         // Firestore does not preserve map key order, so compare canonically:

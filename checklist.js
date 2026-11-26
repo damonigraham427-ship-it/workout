@@ -10,8 +10,7 @@ const CK_SECTIONS = [
   { name: 'Upper Body', regions: ['upper'] },
   { name: 'Abdomen', regions: ['abdomen'] },
   { name: 'Lower Body', regions: ['lower'] },
-  { name: 'Running & Treadmill', regions: ['running', 'vest', 'incline'] },
-  { name: 'General lists', regions: ['general'] }
+  { name: 'Running & Treadmill', regions: ['running'] }
 ];
 
 function ckParse(key, fallback) {
@@ -23,8 +22,7 @@ function ckSave(key, value) {
 }
 function ckShort(title) {
   return String(title || '').replace(/^Upper Body \u2014 /, '').replace(/^Lower Body \u2014 /, '')
-    .replace(/^Abdomen \u2014 /, '').replace(/^Running \u2014 /, '')
-    .replace(/^Weight Vest Run \u2014 /, '').replace(/^Incline Treadmill \u2014 /, '');
+    .replace(/^Abdomen \u2014 /, '').replace(/^Running \u2014 /, '');
 }
 function ckToday() {
   const d = new Date();

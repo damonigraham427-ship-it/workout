@@ -1,20 +1,21 @@
-// Workout Elements landing (Nov 23, 2026): the section split 3 ways at
-// Damoni's order — Upper Body, Abdomen, Lower Body, each with its own
-// circle (workout-topics.html?body=<region>). Lists that belong to no body
-// region (region 'general': Static List, Pump Circumference) stay here as
-// direct links to their list pages.
+// Workout Elements landing (Nov 23, 2026): the section split at Damoni's
+// order — Upper Body, Abdomen, Lower Body, each with its own circle
+// (workout-topics.html?body=<region>), plus the Running circle. Every list
+// lives inside one of those sections (Nov 26, 2026: Static List and
+// Reference Weight moved inside the body sections; Pump Circumference
+// removed; no General lists remain).
 const WO_PALETTE = ['#2563eb', '#b91c1c', '#047857', '#b45309', '#6d28d9', '#0e7490'];
-// Body circles first; the running and treadmill circles sit in their own
-// separate section on the landing (Damoni, Nov 23, 2026).
+// Body circles first; the Running circle sits in its own separate
+// section on the landing (Damoni, Nov 23, 2026). Weight Vest Run and
+// Incline Treadmill are entries inside Running, not their own circles
+// (Damoni, Nov 26, 2026).
 const WO_REGIONS = [
   { key: 'upper', name: 'Upper Body' },
   { key: 'abdomen', name: 'Abdomen' },
   { key: 'lower', name: 'Lower Body' }
 ];
 const WO_CARDIO = [
-  { key: 'running', name: 'Running' },
-  { key: 'vest', name: 'Weight Vest Run' },
-  { key: 'incline', name: 'Incline Treadmill' }
+  { key: 'running', name: 'Running' }
 ];
 
 function woCard(label, sub, color, onclick) {
@@ -48,13 +49,6 @@ fetch('index.json', { cache: 'no-store' })
     }));
     fill('wo-circles', WO_REGIONS, 0);
     fill('wo-cardio', WO_CARDIO, 3);
-    const general = document.getElementById('wo-general');
-    entries.filter(e => e.region === 'general').forEach((e, i) => {
-      const label = e.title.replace(/^Workout Elements — /, '');
-      general.appendChild(woCard(label, e.ladder ? 'ladder · open list' : 'notes · open list', WO_PALETTE[(i + 3) % WO_PALETTE.length], () => {
-        location.href = e.ladder ? 'ladder.html?ladder=' + e.file : 'notes.html?notes=' + e.file;
-      }));
-    });
   })
   .catch(() => {
     document.getElementById('wo-circles').textContent = 'Could not load the list.';

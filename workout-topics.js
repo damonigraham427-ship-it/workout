@@ -15,8 +15,8 @@
 
   fetch('index.json', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (idx) {
     var body = new URLSearchParams(location.search).get('body');
-    if (['upper', 'abdomen', 'lower', 'running', 'vest', 'incline'].indexOf(body) === -1) { location.replace('workout.html'); return; }
-    var regionName = { upper: 'Upper Body', abdomen: 'Abdomen', lower: 'Lower Body', running: 'Running', vest: 'Weight Vest Run', incline: 'Incline Treadmill' }[body];
+    if (['upper', 'abdomen', 'lower', 'running'].indexOf(body) === -1) { location.replace('workout.html'); return; }
+    var regionName = { upper: 'Upper Body', abdomen: 'Abdomen', lower: 'Lower Body', running: 'Running' }[body];
     document.title = 'Workout Elements \u2014 ' + regionName;
     var h1 = document.getElementById('tp-title');
     if (h1) h1.textContent = 'Workout Elements \u2014 ' + regionName;

@@ -205,6 +205,10 @@ function renderCategories() {
     selCategory = qCat;
     const chs = new Set(allExams.filter(e => (e.category || 'General') === qCat)
       .map(e => e.chapter === undefined ? 'Other' : String(e.chapter)));
+    if (qCat === 'Workout Elements' && qCh !== null) {
+      const woBodyDl = { 'Upper Body': 'upper', 'Abdomen': 'abdomen', 'Lower Body': 'lower', 'Running': 'running' }[qCh];
+      if (woBodyDl) { location.replace('https://damonigraham427-ship-it.github.io/workout/workout-topics.html?body=' + woBodyDl); return; }
+    }
     if (qCh !== null && chs.has(qCh)) {
       selChapter = qCh;
       cards.forEach(card => {
@@ -236,6 +240,18 @@ function renderChapters() {
         location.href = 'topics.html?ch=' + encodeURIComponent(ch);
       }));
       return;
+    }
+    if (selCategory === 'Workout Elements') {
+      // Section landings are the PIE, never the exam-card list (Damoni,
+      // Nov 26, 2026). Absolute URL: the pie lives on the workout site, so
+      // this is correct from the master portal too.
+      const woBody = { 'Upper Body': 'upper', 'Abdomen': 'abdomen', 'Lower Body': 'lower', 'Running': 'running' }[ch];
+      if (woBody) {
+        wrap.appendChild(navCard(label, 'circle \u00B7 one slice per list', PALETTE[i % PALETTE.length], () => {
+          location.href = 'https://damonigraham427-ship-it.github.io/workout/workout-topics.html?body=' + woBody;
+        }));
+        return;
+      }
     }
     wrap.appendChild(navCard(label, n + (n === 1 ? ' exam' : ' exams'), PALETTE[i % PALETTE.length], () => {
       selChapter = ch;
